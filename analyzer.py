@@ -2,10 +2,16 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
 import csv
 import datetime
 import os
-import sys
 import matplotlib.pyplot as plt
 import pandas as pd
 
+columns_to_plot = [
+    'przypadki_srednia_7dni',
+    'zgony_srednia_7dni',
+    'procent_poz_testow_7dni',
+    'liczba_osob_objetych_kwarantanna',
+    'liczba_na_10_tys_mieszkancow'
+]
 
 def parse_args():
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog="")
@@ -17,6 +23,15 @@ def get_date_from_filename(filename):
     month = int(filename[4:6])
     day = int(filename[6:8])
     return datetime.datetime(year, month, day).strftime("%Y-%m-%d")
+
+def plot_column(dataset, column):
+    plt.style.use("fivethirtyeight")
+    plt.figure(figsize=(16, 9), )
+    plt.xlabel("Daty")
+    plt.ylabel("Wartości")
+    plt.title(column)
+    plt.plot(dataset[column])
+    plt.show()
 
 def read_csv(file, greater_area, minor_area):
     data = {}    
@@ -107,8 +122,6 @@ if(__name__ == "__main__"):
     print(output)
 
     placeholder = output.loc[output['teryt'] == args.territory]
-    #placeholder = output.loc[output['teryt'] == 't2261']
-    #placeholder = output.loc[output['teryt'] == 't2210']
     single_area = placeholder.copy()
 
     print(single_area.columns)
@@ -118,15 +131,12 @@ if(__name__ == "__main__"):
     single_area['przypadki_srednia_7dni'] = single_area['liczba_przypadkow_int'].rolling(window=7).mean()
     single_area['zgony_srednia_7dni'] = single_area['zgony_int'].rolling(window=7).mean()
     single_area['stan_rekordu_na_str'] = single_area['stan_rekordu_na'].astype(str)
+    single_area['procent_poz_testow'] = (single_area['liczba_testow_z_wynikiem_pozytywnym'] / single_area['liczba_wykonanych_testow'] * 100).astype(float)
+    single_area['procent_poz_testow_7dni'] = single_area['procent_poz_testow'].rolling(window=7).mean()
     single_area.to_csv('output.csv', sep=delimiter)
-    #single_area['liczba_zlecen_poz'] = single_area['liczba_zlecen_poz'].astype(int)
-    #single_area['liczba_osob_objetych_kwarantanna'] = single_area['liczba_osob_objetych_kwarantanna'].astype(int)
-    print(single_area)
-    plot = single_area.plot(kind='line', x='stan_rekordu_na_str', y=['przypadki_srednia_7dni'])
-    plt.show()
-    plt.savefig(sys.stdout.buffer)
-    sys.stdout.flush()
-    plot = single_area.plot(kind='line', x='stan_rekordu_na_str', y=['liczba_na_10_tys_mieszkancow'])
-    plt.show()
-    plt.savefig(sys.stdout.buffer)
-    sys.stdout.flush()
+    single_area['liczba_osob_objetych_kwarantanna'] = single_area['liczba_osob_objetych_kwarantanna'].astype(int)
+    single_area['stan_rekordu_na_str'] = single_area['stan_rekordu_na_str'].astype("datetime64")
+    single_area.set_index('stan_rekordu_na_str', inplace=True)
+
+    for column in columns_to_plot:
+        plot_column(single_area, column)

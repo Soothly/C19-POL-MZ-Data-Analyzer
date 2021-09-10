@@ -1,7 +1,10 @@
 import csv
 import datetime
 import os
+import sys
 import matplotlib.pyplot as plt
+from numpy import sin, single
+import pandas as pd
 
 
 def get_date_from_filename(filename):
@@ -79,15 +82,44 @@ def export_to_csv(data):
                 ])
 
 if(__name__ == "__main__"):
-    data = {}
-    data_path = "./dane_historyczne"
+    data = []
+    data_path = "./data"
+    delimiter = ";"
     files = os.listdir(data_path)
-    files.pop()
     for file in files:
+        if("csv" not in file):
+            continue
         filepath = data_path + "/" + file
         date = get_date_from_filename(file)
-        data[date] = read_csv(filepath, "pomorskie", "Gdańsk")
+        try:
+            data_from_file = pd.read_csv(filepath, delimiter=delimiter, encoding='utf-8')
+        except UnicodeDecodeError:
+            data_from_file = pd.read_csv(filepath, delimiter=delimiter, encoding='cp1250')
+        data.append(data_from_file)
     
-    export_to_csv(data)
+    output = pd.concat(data)
+    print(output)
 
-    print(data)
+    placeholder = output.loc[output['teryt'] == 't2261']
+    #placeholder = output.loc[output['teryt'] == 't2210']
+    single_area = placeholder.copy()
+
+    print(single_area.columns)
+    single_area.dropna(axis=0, how='any', inplace=True)
+    single_area['liczba_przypadkow_int'] = single_area['liczba_przypadkow'].astype(int)
+    single_area['zgony_int'] = single_area['zgony'].astype(int)
+    single_area['przypadki_srednia_7dni'] = single_area['liczba_przypadkow_int'].rolling(window=7).mean()
+    single_area['zgony_srednia_7dni'] = single_area['zgony_int'].rolling(window=7).mean()
+    single_area['stan_rekordu_na_str'] = single_area['stan_rekordu_na'].astype(str)
+    single_area.to_csv('output.csv', sep=delimiter)
+    #single_area['liczba_zlecen_poz'] = single_area['liczba_zlecen_poz'].astype(int)
+    #single_area['liczba_osob_objetych_kwarantanna'] = single_area['liczba_osob_objetych_kwarantanna'].astype(int)
+    print(single_area)
+    plot = single_area.plot(kind='line', x='stan_rekordu_na_str', y=['przypadki_srednia_7dni'])
+    plt.show()
+    plt.savefig(sys.stdout.buffer)
+    sys.stdout.flush()
+    plot = single_area.plot(kind='line', x='stan_rekordu_na_str', y=['liczba_na_10_tys_mieszkancow'])
+    plt.show()
+    plt.savefig(sys.stdout.buffer)
+    sys.stdout.flush()

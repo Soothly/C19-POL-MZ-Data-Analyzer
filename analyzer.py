@@ -1,11 +1,16 @@
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, SUPPRESS
 import csv
 import datetime
 import os
 import sys
 import matplotlib.pyplot as plt
-from numpy import sin, single
 import pandas as pd
 
+
+def parse_args():
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter, epilog="")
+    parser.add_argument("territory", help="")
+    return parser.parse_args()
 
 def get_date_from_filename(filename):
     year = int(filename[0:4])
@@ -82,6 +87,7 @@ def export_to_csv(data):
                 ])
 
 if(__name__ == "__main__"):
+    args = parse_args()
     data = []
     data_path = "./data"
     delimiter = ";"
@@ -100,7 +106,8 @@ if(__name__ == "__main__"):
     output = pd.concat(data)
     print(output)
 
-    placeholder = output.loc[output['teryt'] == 't2261']
+    placeholder = output.loc[output['teryt'] == args.territory]
+    #placeholder = output.loc[output['teryt'] == 't2261']
     #placeholder = output.loc[output['teryt'] == 't2210']
     single_area = placeholder.copy()
 

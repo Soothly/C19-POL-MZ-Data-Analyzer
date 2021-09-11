@@ -18,12 +18,6 @@ def parse_args():
     parser.add_argument("territory", help="")
     return parser.parse_args()
 
-def get_date_from_filename(filename):
-    year = int(filename[0:4])
-    month = int(filename[4:6])
-    day = int(filename[6:8])
-    return datetime.datetime(year, month, day).strftime("%Y-%m-%d")
-
 def plot_columns(dataset, columns):
     plt.style.use("fivethirtyeight")
     plt.figure(figsize=(16, 9))
@@ -46,7 +40,6 @@ if(__name__ == "__main__"):
         if("csv" not in file):
             continue
         filepath = data_path + "/" + file
-        date = get_date_from_filename(file)
         try:
             data_from_file = pd.read_csv(filepath, delimiter=delimiter, encoding='utf-8')
         except UnicodeDecodeError:

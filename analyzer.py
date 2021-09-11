@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from territory_codes import codes
 import os
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -15,8 +16,8 @@ def parse_args():
     parser = ArgumentParser(
         formatter_class=ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument("territory", 
-        help="Input territory ID for which you want graphs generated")
+    parser.add_argument("territory",
+        help="Input territory name for which you want graphs generated")
     return parser.parse_args()
 
 def plot_columns(dataset, columns):
@@ -52,9 +53,9 @@ if(__name__ == "__main__"):
         data.append(data_from_file)
     
     output = pd.concat(data)
-    print(output)
 
-    placeholder = output.loc[output['teryt'] == args.territory]
+    territory_id = codes[args.territory]
+    placeholder = output.loc[output['teryt'] == territory_id]
     single_area = placeholder.copy()
 
     single_area.dropna(axis=0, how='any', inplace=True)

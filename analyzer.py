@@ -1,4 +1,6 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+
+from numpy import sin, single
 from territory_codes import codes
 import os
 import matplotlib.pyplot as plt
@@ -9,7 +11,7 @@ columns_to_plot = [
     ['zgony_srednia_7dni'],
     ['procent_poz_testow_7dni', 'liczba_wykonanych_testow_srednia_7dni'],
     ['liczba_osob_objetych_kwarantanna'],
-    ['liczba_na_10_tys_mieszkancow']
+    ['liczba_na_10_tys_mieszkancow_7dni']
 ]
 
 def parse_args():
@@ -88,6 +90,8 @@ if(__name__ == "__main__"):
     single_area['stan_rekordu_na_str'] = (
         single_area['stan_rekordu_na_str'].astype("datetime64")
     )
+    single_area['liczba_na_10_tys_mieszkancow_7dni'] = (
+        single_area['liczba_na_10_tys_mieszkancow'].rolling(window=7).mean())
     single_area.set_index('stan_rekordu_na_str', inplace=True)
 
     for column in columns_to_plot:

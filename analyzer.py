@@ -1,6 +1,5 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-
-from numpy import sin, single
+from downloader import download_current_data, extract_data
 from territory_codes import codes
 import os
 import matplotlib.pyplot as plt
@@ -38,7 +37,14 @@ if(__name__ == "__main__"):
     args = parse_args()
     data = []
     data_path = "./data"
+    zip_path = "."
+    zip_name = "data.zip"
+    archive_path = zip_path + "/" + zip_name
     delimiter = ";"
+
+    download_current_data(zip_path, zip_name)
+    extract_data(archive_path, data_path)
+
     files = os.listdir(data_path)
     for file in files:
         if("csv" not in file):

@@ -2,3 +2,5 @@
 venv/
 *.csv
 *.pyc
+data/readme.txt
+*.zip

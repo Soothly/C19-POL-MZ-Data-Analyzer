@@ -1,6 +1,7 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from downloader import download_current_data, extract_data, remove_downloaded_archive
 from territory_codes import codes
+from datetime import date, datetime
 import os
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -19,6 +20,10 @@ def parse_args():
     )
     parser.add_argument("territory",
         help="Input territory name for which you want graphs generated")
+    parser.add_argument("--delimiter", default=";", 
+        help="Set delimiter used in CSV files")
+    parser.add_argument("--data-dir", dest="data_dir", default="./data", 
+        help="Set path for the directory to download data to")
     return parser.parse_args()
 
 def plot_columns(dataset, columns):
@@ -34,21 +39,31 @@ def plot_columns(dataset, columns):
 
 
 if(__name__ == "__main__"):
+    print("Parsing command-line arguments")
     args = parse_args()
+    date = datetime.now()
+    date_code = date.strftime("%Y%m%d")
     data = []
-    data_path = "./data"
+    data_path = args.data_dir
     zip_path = "."
     zip_name = "data.zip"
-    archive_path = zip_path + "/" + zip_name
-    delimiter = ";"
+    archive_path = "./" + zip_name
+    delimiter = args.delimiter
 
+    print("Finding out if fresh data needs to be downloaded")
     files = os.listdir(data_path)
     file_name_contains_current_date = [date_code in file for file in files]
     if(not any(file_name_contains_current_date)):
-    download_current_data(zip_path, zip_name)
-    extract_data(archive_path, data_path)
+        print("Downloading data")
+        download_current_data(zip_path, zip_name)
+        print("Extracting archive")
+        extract_data(archive_path, data_path)
+        print("Attempting to remove archive")
         remove_downloaded_archive(archive_path)
+    else:
+        print("Data is current")
 
+    print("Loading data")
     files = os.listdir(data_path)
     for file in files:
         if("csv" not in file):
@@ -70,6 +85,7 @@ if(__name__ == "__main__"):
     placeholder = output.loc[output['teryt'] == territory_id]
     single_area = placeholder.copy()
 
+    print("Processing data")
     single_area.dropna(axis=0, how='any', inplace=True)
     single_area['liczba_przypadkow_int'] = (
         single_area['liczba_przypadkow'].astype(int)
@@ -104,5 +120,7 @@ if(__name__ == "__main__"):
         single_area['liczba_na_10_tys_mieszkancow'].rolling(window=7).mean())
     single_area.set_index('stan_rekordu_na_str', inplace=True)
 
+    print("Plotting selected columns")
     for column in columns_to_plot:
         plot_columns(single_area, column)
+    print("Done!")

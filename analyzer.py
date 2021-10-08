@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from downloader import download_current_data, extract_data
+from downloader import download_current_data, extract_data, remove_downloaded_archive
 from territory_codes import codes
 import os
 import matplotlib.pyplot as plt
@@ -42,8 +42,12 @@ if(__name__ == "__main__"):
     archive_path = zip_path + "/" + zip_name
     delimiter = ";"
 
+    files = os.listdir(data_path)
+    file_name_contains_current_date = [date_code in file for file in files]
+    if(not any(file_name_contains_current_date)):
     download_current_data(zip_path, zip_name)
     extract_data(archive_path, data_path)
+        remove_downloaded_archive(archive_path)
 
     files = os.listdir(data_path)
     for file in files:

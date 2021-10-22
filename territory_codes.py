@@ -1,4 +1,24 @@
-codes = {
+province_codes = {
+    "Cały kraj":"t00",
+    "dolnośląskie":"t02",
+    "kujawsko-pomorskie":"t04",
+    "lubelskie":"t06",
+    "lubuskie":"t08",
+    "łódzki":"t10",
+    "małopolskie":"t12",
+    "mazowieckie":"t14",
+    "opolskie":"t16",
+    "podkarpackie":"t18",
+    "podlaskie":"t20",
+    "pomorskie":"t22",
+    "śląskie":"t24",
+    "świętokrzyskie":"t26",
+    "warmińsko-mazurskie":"t28",
+    "wielkopolskie":"t30",
+    "zachodniopomorskie":"t32"
+}
+
+county_codes = {
     "Cały kraj":"t0000",
     "bolesławiecki":"t0201",
     "dzierżoniowski":"t0202",
@@ -380,4 +400,9 @@ codes = {
     "Koszalin":"t3261",
     "Szczecin":"t3262",
     "Świnoujście":"t3263"
+}
+
+admin_div_types = {
+    "wojewodztwo": province_codes,
+    "powiat": county_codes
 }

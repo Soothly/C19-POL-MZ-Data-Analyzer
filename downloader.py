@@ -2,10 +2,17 @@ import urllib.request
 import zipfile
 import os
 
-def download_current_data(path, filename):
-    urllib.request.urlretrieve(
-        "https://arcgis.com/sharing/rest/content/items/e16df1fa98c2452783ec10b0aea4b341/data", 
-        f"{path}/{filename}")
+data_types = {
+    "powiat": "https://arcgis.com/sharing/rest/content/items/e16df1fa98c2452783ec10b0aea4b341/data",
+    "wojewodztwo": "https://arcgis.com/sharing/rest/content/items/a8c562ead9c54e13a135b02e0d875ffb/data"
+}
+
+def download_current_data(path, filename, data_type):
+    link = data_types.get(data_type,None)
+    if not link:
+        raise ValueError(
+            "Unable to find link for '{}' data type".format(data_type))
+    urllib.request.urlretrieve(link, f"{path}/{filename}")
 
 def extract_data(zip_path, data_dir):
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:

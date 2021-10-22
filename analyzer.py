@@ -1,6 +1,6 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from downloader import download_current_data, extract_data, remove_downloaded_archive
-from territory_codes import codes
+from territory_codes import admin_div_types
 from datetime import date, datetime
 import os
 import matplotlib.pyplot as plt
@@ -18,6 +18,8 @@ def parse_args():
     parser = ArgumentParser(
         formatter_class=ArgumentDefaultsHelpFormatter
     )
+    parser.add_argument("admin_div", choices=["wojewodztwo", "powiat"], 
+        default="powiat", help="Input administrative division type")
     parser.add_argument("territory",
         help="Input territory name for which you want graphs generated")
     parser.add_argument("--delimiter", default=";", 
@@ -44,18 +46,19 @@ if(__name__ == "__main__"):
     date = datetime.now()
     date_code = date.strftime("%Y%m%d")
     data = []
-    data_path = args.data_dir
+    data_path = args.data_dir + "/" + args.admin_div
     zip_path = "."
     zip_name = "data.zip"
     archive_path = "./" + zip_name
     delimiter = args.delimiter
+    codes = admin_div_types.get(args.admin_div)
 
     print("Finding out if fresh data needs to be downloaded")
     files = os.listdir(data_path)
     file_name_contains_current_date = [date_code in file for file in files]
     if(not any(file_name_contains_current_date)):
         print("Downloading data")
-        download_current_data(zip_path, zip_name)
+        download_current_data(zip_path, zip_name, args.admin_div)
         print("Extracting archive")
         extract_data(archive_path, data_path)
         print("Attempting to remove archive")

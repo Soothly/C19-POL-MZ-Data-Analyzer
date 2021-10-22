@@ -14,6 +14,48 @@ columns_to_plot = [
     ['liczba_na_10_tys_mieszkancow_7dni']
 ]
 
+columns_to_int = [
+    ("liczba_przypadkow_int", "liczba_przypadkow"),
+    ("zgony_int", "zgony"),
+    ("liczba_osob_objetych_kwarantanna", "liczba_osob_objetych_kwarantanna")
+]
+columns_to_str = [
+    ("stan_rekordu_na_str", "stan_rekordu_na")
+]
+columns_to_average = [
+    ("przypadki_srednia_7dni", "liczba_przypadkow_int"),
+    ('zgony_srednia_7dni', "zgony_int"),
+    ('procent_poz_testow_7dni', 'procent_poz_testow'),
+    ("liczba_wykonanych_testow_srednia_7dni", 'liczba_wykonanych_testow'),
+    ('liczba_na_10_tys_mieszkancow_7dni', "liczba_na_10_tys_mieszkancow")
+]
+columns_to_date_type = [
+    ("stan_rekordu_na_str", "stan_rekordu_na_str")
+]
+
+columns_to_percentage = [
+    ('procent_poz_testow', ('liczba_testow_z_wynikiem_pozytywnym', 'liczba_wykonanych_testow'))
+]
+
+index_column = "stan_rekordu_na_str"
+
+operation_order = [
+    "convert_to_int", "convert_to_str", "convert_to_date",
+    "calculate_percentage", "calculate_avg"
+]
+
+columns = {
+    "index": index_column,
+    "convert_to_int": columns_to_int,
+    "convert_to_str": columns_to_str,
+    "convert_to_date": columns_to_date_type,
+    "calculate_avg": columns_to_average,
+    "calculate_percentage": columns_to_percentage,
+    "plot": columns_to_plot,
+    "operation_order": operation_order
+}
+
+
 def parse_args():
     parser = ArgumentParser(
         formatter_class=ArgumentDefaultsHelpFormatter
@@ -41,6 +83,83 @@ def plot_columns(dataset, columns):
         plt.plot(dataset[column])
     plt.show()
 
+def load_and_concatenate_data(data_path, delimiter):
+    files = os.listdir(data_path)
+    for file in files:
+        if("csv" not in file):
+            continue
+        filepath = data_path + "/" + file
+        try:
+            data_from_file = pd.read_csv(
+                filepath, delimiter=delimiter, encoding='utf-8'
+            )
+        except UnicodeDecodeError:
+            data_from_file = pd.read_csv(
+                filepath, delimiter=delimiter, encoding='cp1250'
+            )
+        data.append(data_from_file)
+    
+    concatenated_data = pd.concat(data)
+    return concatenated_data
+
+def get_single_area_data(data, territory_code):
+    territory_id = codes[territory_code]
+    placeholder = data.loc[data['teryt'] == territory_id]
+    single_area_data = placeholder.copy()
+    return single_area_data
+
+def convert_to_int(data, source_column_name, result_column_name):
+    data[result_column_name] = data[source_column_name].astype(int)
+    return data
+
+def convert_to_str(data, source_column_name, result_column_name):
+    data[result_column_name] = data[source_column_name].astype(str)
+    return data
+
+def convert_to_date(data, source_column_name, result_column_name):
+    data[result_column_name] = data[source_column_name].astype("datetime64")
+    return data
+
+def calculate_percentage(data, source_column_names, result_column_name):
+    numerator = source_column_names[0]
+    denominator = source_column_names[1]
+    data[result_column_name] = (
+        data[numerator] / data[denominator] * 100
+    ).astype(float)
+    return data
+
+def calculate_7_day_rolling_average(data, source_column_name, result_column_name):
+    data[result_column_name] = (
+            data[source_column_name].rolling(window=7).mean()
+        )
+    return data
+
+
+def get_operation_function(operation):
+    operations = {
+        "convert_to_int": convert_to_int,
+        "convert_to_str": convert_to_str,
+        "convert_to_date": convert_to_date,
+        "calculate_percentage": calculate_percentage,
+        "calculate_avg": calculate_7_day_rolling_average
+    }
+    return operations.get(operation, None)
+
+def generate_additional_metrics(data, columns_config):
+    data.dropna(axis=0, how='any', inplace=True)
+
+    for operation in columns_config['operation_order']:
+        for column in columns_config[operation]:
+            operation_function = get_operation_function(operation)
+            if(not operation_function):
+                raise ValueError(f"Unable to match operation processor method \
+                    for operation: {operation}")
+            result_column_name = column[0]
+            source_column_names = column[1]
+            data = operation_function(data, source_column_names, result_column_name)
+
+    data.set_index(columns_config["index"], inplace=True)
+    return data
 
 if(__name__ == "__main__"):
     print("Parsing command-line arguments")
@@ -69,63 +188,13 @@ if(__name__ == "__main__"):
         print("Data is current")
 
     print("Loading data")
-    files = os.listdir(data_path)
-    for file in files:
-        if("csv" not in file):
-            continue
-        filepath = data_path + "/" + file
-        try:
-            data_from_file = pd.read_csv(
-                filepath, delimiter=delimiter, encoding='utf-8'
-            )
-        except UnicodeDecodeError:
-            data_from_file = pd.read_csv(
-                filepath, delimiter=delimiter, encoding='cp1250'
-            )
-        data.append(data_from_file)
-    
-    output = pd.concat(data)
-
-    territory_id = codes[args.territory]
-    placeholder = output.loc[output['teryt'] == territory_id]
-    single_area = placeholder.copy()
+    data = load_and_concatenate_data(data_path, delimiter)
+    single_area_data = get_single_area_data(data, args.territory)
 
     print("Processing data")
-    single_area.dropna(axis=0, how='any', inplace=True)
-    single_area['liczba_przypadkow_int'] = (
-        single_area['liczba_przypadkow'].astype(int)
-    )
-    single_area['zgony_int'] = single_area['zgony'].astype(int)
-    single_area['przypadki_srednia_7dni'] = (
-        single_area['liczba_przypadkow_int'].rolling(window=7).mean()
-    )
-    single_area['zgony_srednia_7dni'] = (
-        single_area['zgony_int'].rolling(window=7).mean()
-    )
-    single_area['liczba_wykonanych_testow_srednia_7dni'] = (
-        single_area['liczba_wykonanych_testow'].rolling(window=7).mean()
-    )
-    single_area['stan_rekordu_na_str'] = (
-        single_area['stan_rekordu_na'].astype(str)
-    )
-    single_area['procent_poz_testow'] = (
-        (single_area['liczba_testow_z_wynikiem_pozytywnym'] / 
-         single_area['liczba_wykonanych_testow'] * 100).astype(float)
-    )
-    single_area['procent_poz_testow_7dni'] = (
-        single_area['procent_poz_testow'].rolling(window=7).mean()
-    )
-    single_area['liczba_osob_objetych_kwarantanna'] = (
-        single_area['liczba_osob_objetych_kwarantanna'].astype(int)
-    )
-    single_area['stan_rekordu_na_str'] = (
-        single_area['stan_rekordu_na_str'].astype("datetime64")
-    )
-    single_area['liczba_na_10_tys_mieszkancow_7dni'] = (
-        single_area['liczba_na_10_tys_mieszkancow'].rolling(window=7).mean())
-    single_area.set_index('stan_rekordu_na_str', inplace=True)
+    single_area_data = generate_additional_metrics(single_area_data, columns)
 
     print("Plotting selected columns")
     for column in columns_to_plot:
-        plot_columns(single_area, column)
+        plot_columns(single_area_data, column)
     print("Done!")

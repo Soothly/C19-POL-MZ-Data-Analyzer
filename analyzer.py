@@ -1,10 +1,10 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from lib.downloader import download_current_data, extract_data, remove_downloaded_archive
-from lib.territory_codes import admin_div_types
+from lib.dataset import DataSet
+from lib.file_handler import FileHandler
+from lib.territory import Territory
 from datetime import date, datetime
 import os
 import matplotlib.pyplot as plt
-import pandas as pd
 
 columns_to_plot = [
     ['przypadki_srednia_7dni'],
@@ -55,6 +55,7 @@ columns = {
     "operation_order": operation_order
 }
 
+        
 
 def parse_args():
     parser = ArgumentParser(
@@ -83,118 +84,38 @@ def plot_columns(dataset, columns):
         plt.plot(dataset[column])
     plt.show()
 
-def load_and_concatenate_data(data_path, delimiter):
-    files = os.listdir(data_path)
-    for file in files:
-        if("csv" not in file):
-            continue
-        filepath = data_path + "/" + file
-        try:
-            data_from_file = pd.read_csv(
-                filepath, delimiter=delimiter, encoding='utf-8'
-            )
-        except UnicodeDecodeError:
-            data_from_file = pd.read_csv(
-                filepath, delimiter=delimiter, encoding='cp1250'
-            )
-        data.append(data_from_file)
-    
-    concatenated_data = pd.concat(data)
-    return concatenated_data
-
-def get_single_area_data(data, territory_code):
-    territory_id = codes[territory_code]
-    placeholder = data.loc[data['teryt'] == territory_id]
-    single_area_data = placeholder.copy()
-    return single_area_data
-
-def convert_to_int(data, source_column_name, result_column_name):
-    data[result_column_name] = data[source_column_name].astype(int)
-    return data
-
-def convert_to_str(data, source_column_name, result_column_name):
-    data[result_column_name] = data[source_column_name].astype(str)
-    return data
-
-def convert_to_date(data, source_column_name, result_column_name):
-    data[result_column_name] = data[source_column_name].astype("datetime64")
-    return data
-
-def calculate_percentage(data, source_column_names, result_column_name):
-    numerator = source_column_names[0]
-    denominator = source_column_names[1]
-    data[result_column_name] = (
-        data[numerator] / data[denominator] * 100
-    ).astype(float)
-    return data
-
-def calculate_7_day_rolling_average(data, source_column_name, result_column_name):
-    data[result_column_name] = (
-            data[source_column_name].rolling(window=7).mean()
-        )
-    return data
-
-
-def get_operation_function(operation):
-    operations = {
-        "convert_to_int": convert_to_int,
-        "convert_to_str": convert_to_str,
-        "convert_to_date": convert_to_date,
-        "calculate_percentage": calculate_percentage,
-        "calculate_avg": calculate_7_day_rolling_average
-    }
-    return operations.get(operation, None)
-
-def generate_additional_metrics(data, columns_config):
-    data.dropna(axis=0, how='any', inplace=True)
-
-    for operation in columns_config['operation_order']:
-        for column in columns_config[operation]:
-            operation_function = get_operation_function(operation)
-            if(not operation_function):
-                raise ValueError(f"Unable to match operation processor method \
-                    for operation: {operation}")
-            result_column_name = column[0]
-            source_column_names = column[1]
-            data = operation_function(data, source_column_names, result_column_name)
-
-    data.set_index(columns_config["index"], inplace=True)
-    return data
-
 if(__name__ == "__main__"):
     print("Parsing command-line arguments")
     args = parse_args()
     date = datetime.now()
     date_code = date.strftime("%Y%m%d")
-    data = []
     data_path = args.data_dir + "/" + args.admin_div
     zip_path = "."
     zip_name = "data.zip"
     archive_path = "./" + zip_name
-    delimiter = args.delimiter
-    codes = admin_div_types.get(args.admin_div)
+    territory = Territory(args.admin_div, args.territory)
+    file_handler = FileHandler(zip_name, zip_path, data_path)
 
     print("Finding out if fresh data needs to be downloaded")
     files = os.listdir(data_path)
     file_name_contains_current_date = [date_code in file for file in files]
     if(not any(file_name_contains_current_date)):
         print("Downloading data")
-        download_current_data(zip_path, zip_name, args.admin_div)
+        file_handler.download_current_data(territory)
         print("Extracting archive")
-        extract_data(archive_path, data_path)
+        file_handler.extract_data()
         print("Attempting to remove archive")
-        remove_downloaded_archive(archive_path)
+        file_handler.remove_downloaded_archive()
     else:
         print("Data is current")
 
     print("Loading data")
-    data = load_and_concatenate_data(data_path, delimiter)
-    single_area_data = get_single_area_data(data, args.territory)
+    dataset = DataSet(data_path, args.delimiter, territory)
 
     print("Processing data")
-    single_area_data = generate_additional_metrics(single_area_data, columns)
+    dataset.generate_additional_metrics(columns)
 
     print("Plotting selected columns")
     for column in columns_to_plot:
-        plot_columns(single_area_data, column)
+        plot_columns(dataset.data, column)
     print("Done!")

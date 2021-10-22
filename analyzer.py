@@ -1,6 +1,6 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from downloader import download_current_data, extract_data, remove_downloaded_archive
-from territory_codes import admin_div_types
+from lib.downloader import download_current_data, extract_data, remove_downloaded_archive
+from lib.territory_codes import admin_div_types
 from datetime import date, datetime
 import os
 import matplotlib.pyplot as plt

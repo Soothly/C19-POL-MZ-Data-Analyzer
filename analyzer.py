@@ -35,6 +35,8 @@ def plot_columns(dataset, columns):
     plt.ylabel("Wartości")
     title = ",".join(columns)
     plt.title(title)
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
     for column in columns:
         plt.plot(dataset[column])
     plt.show()

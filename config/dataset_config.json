@@ -1,0 +1,92 @@
+{
+    "operation_order": [
+        "convert_to_int", 
+        "convert_to_str", 
+        "convert_to_date",
+        "calculate_percentage", 
+        "calculate_avg"
+    ],
+    "index_column": "stan_rekordu_na_str",
+    "plots":[
+        {
+            "name": "Srednia liczba przypadkow",
+            "columns":["przypadki_srednia_7dni"]
+        },
+        {
+            "name": "Srednia liczba przypadkow na 10 tys. mieszkancow",
+            "columns": ["liczba_na_10_tys_mieszkancow_7dni"]
+        },
+        {
+            "name": "Srednia liczba zgonow",
+            "columns": ["zgony_srednia_7dni"]
+        },
+        {
+            "name": "Liczba testow i procent pozytywnych",
+            "columns": [
+                "procent_poz_testow_7dni", 
+                "liczba_wykonanych_testow_srednia_7dni"
+            ]
+        },
+        {
+            "name": "Osoby objete kwarantanna",
+            "columns": ["liczba_osob_objetych_kwarantanna"]
+        }
+    ],
+    "convert_to_int": [
+        {
+            "result_column": "liczba_przypadkow_int",
+            "source_column": "liczba_przypadkow"
+        },
+        {
+            "result_column": "zgony_int",
+            "source_column": "zgony"
+        },
+        {
+            "result_column": "liczba_osob_objetych_kwarantanna",
+            "source_column": "liczba_osob_objetych_kwarantanna"
+        }
+    ],
+    "convert_to_str": [
+        {
+            "result_column": "stan_rekordu_na_str",
+            "source_column": "stan_rekordu_na"
+        }
+    ],
+    "calculate_avg": [
+        {
+            "result_column": "przypadki_srednia_7dni",
+            "source_column": "liczba_przypadkow_int"
+        },
+        {
+            "result_column": "zgony_srednia_7dni",
+            "source_column": "zgony_int"
+        },
+        {
+            "result_column": "procent_poz_testow_7dni",
+            "source_column": "procent_poz_testow"
+        },
+        {
+            "result_column": "liczba_wykonanych_testow_srednia_7dni",
+            "source_column": "liczba_wykonanych_testow"
+        },
+        {
+            "result_column": "liczba_na_10_tys_mieszkancow_7dni",
+            "source_column": "liczba_na_10_tys_mieszkancow"
+        }
+    ],
+    "convert_to_date": [
+        {
+            "result_column": "stan_rekordu_na_str",
+            "source_column": "stan_rekordu_na_str"
+        }
+    ],
+    "calculate_percentage": [
+        {
+            "result_column": "procent_poz_testow",
+            "source_column": [
+                "liczba_testow_z_wynikiem_pozytywnym", 
+                "liczba_wykonanych_testow"
+            ]
+        }
+    ]
+}

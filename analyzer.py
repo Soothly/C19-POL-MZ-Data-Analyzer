@@ -30,6 +30,45 @@ def parse_args():
     return parser.parse_args()
 
 
+def analyze(
+    territory_type,
+    territory,
+    config="./config/dataset_config.json",
+    delimiter=";",
+    data_dir="./data",
+):
+    print("Parsing command-line arguments")
+    date = datetime.now()
+    date_code = date.strftime("%Y%m%d")
+    data_path = data_dir + "/" + territory_type
+    zip_path = "."
+    zip_name = "data.zip"
+    territory = Territory(territory_type, territory)
+    file_handler = FileHandler(zip_name, zip_path, data_path)
+
+    print("Finding out if fresh data needs to be downloaded")
+    files = os.listdir(data_path)
+    file_name_contains_current_date = [date_code in file for file in files]
+    if not any(file_name_contains_current_date):
+        print("Downloading data")
+        file_handler.download_current_data(territory)
+        print("Extracting archive")
+        file_handler.extract_data()
+        print("Attempting to remove archive")
+        file_handler.remove_downloaded_archive()
+    else:
+        print("Data is current")
+
+    print("Loading data")
+    dataset = DataSet(data_path, delimiter, territory, config)
+
+    print("Processing data")
+    dataset.generate_additional_metrics()
+
+    print("Plotting selected columns")
+    dataset.plot()
+    print("Done!")
+
 
 if __name__ == "__main__":
     print("Parsing command-line arguments")

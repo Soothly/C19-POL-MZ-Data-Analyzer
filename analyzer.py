@@ -5,22 +5,33 @@ from lib.territory import Territory
 from datetime import date, datetime
 import os
 
+
 def parse_args():
-    parser = ArgumentParser(
-        formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument("admin_div", choices=["wojewodztwo", "powiat"], 
-        default="powiat", help="Input administrative division type")
-    parser.add_argument("territory",
-        help="Input territory name for which you want graphs generated")
+    parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+    parser.add_argument(
+        "admin_div",
+        choices=["wojewodztwo", "powiat"],
+        default="powiat",
+        help="Input administrative division type",
+    )
+    parser.add_argument(
+        "territory", help="Input territory name for which you want graphs generated"
+    )
     parser.add_argument("--config", default="./config/dataset_config.json")
-    parser.add_argument("--delimiter", default=";", 
-        help="Set delimiter used in CSV files")
-    parser.add_argument("--data-dir", dest="data_dir", default="./data", 
-        help="Set path for the directory to download data to")
+    parser.add_argument(
+        "--delimiter", default=";", help="Set delimiter used in CSV files"
+    )
+    parser.add_argument(
+        "--data-dir",
+        dest="data_dir",
+        default="./data",
+        help="Set path for the directory to download data to",
+    )
     return parser.parse_args()
 
 
-if(__name__ == "__main__"):
+
+if __name__ == "__main__":
     print("Parsing command-line arguments")
     args = parse_args()
     date = datetime.now()
@@ -35,7 +46,7 @@ if(__name__ == "__main__"):
     print("Finding out if fresh data needs to be downloaded")
     files = os.listdir(data_path)
     file_name_contains_current_date = [date_code in file for file in files]
-    if(not any(file_name_contains_current_date)):
+    if not any(file_name_contains_current_date):
         print("Downloading data")
         file_handler.download_current_data(territory)
         print("Extracting archive")

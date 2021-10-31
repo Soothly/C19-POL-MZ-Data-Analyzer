@@ -9,26 +9,31 @@
     "index_column": "stan_rekordu_na_str",
     "plots":[
         {
-            "name": "Srednia liczba przypadkow",
+            "name": "7-day rolling average of cases",
             "columns":["przypadki_srednia_7dni"]
         },
         {
-            "name": "Srednia liczba przypadkow na 10 tys. mieszkancow",
+            "name": "7-day rolling average of cases per 10k citizens",
             "columns": ["liczba_na_10_tys_mieszkancow_7dni"]
         },
         {
-            "name": "Srednia liczba zgonow",
+            "name": "7-day rolling average of deaths",
             "columns": ["zgony_srednia_7dni"]
         },
         {
-            "name": "Liczba testow i procent pozytywnych",
+            "name": "7-day rolling average of tests conducted",
             "columns": [
-                "procent_poz_testow_7dni", 
                 "liczba_wykonanych_testow_srednia_7dni"
             ]
         },
         {
-            "name": "Osoby objete kwarantanna",
+            "name": "7-day rolling average of positivity rate",
+            "columns": [
+                "procent_poz_testow_7dni"
+            ]
+        },
+        {
+            "name": "People under quarantine",
             "columns": ["liczba_osob_objetych_kwarantanna"]
         }
     ],

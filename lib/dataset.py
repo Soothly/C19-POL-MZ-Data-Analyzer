@@ -79,6 +79,7 @@ class DataSetConfig(object):
 
         self.plots_data = config["plots"]
         self.convert_to_int = config["convert_to_int"]
+        self.convert_to_float = config["convert_to_float"]
         self.convert_to_str = config["convert_to_str"]
         self.calculate_avg = config["calculate_avg"]
         self.convert_to_date = config["convert_to_date"]
@@ -121,6 +122,10 @@ class DataSetOperations(object):
     def convert_to_int(self, data, source_column_name, result_column_name):
         data[result_column_name] = data[source_column_name].astype(int)
 
+    def convert_to_numeric(self, data, source_column_name, result_column_name):
+        data[source_column_name].replace(",", ".", regex=True, inplace=True)
+        data[result_column_name] = data[source_column_name].astype(float)
+
     def convert_to_str(self, data, source_column_name, result_column_name):
         data[result_column_name] = data[source_column_name].astype(str)
 
@@ -142,6 +147,7 @@ class DataSetOperations(object):
     def get_operation_function(self, operation):
         operations = {
             "convert_to_int": self.convert_to_int,
+            "convert_to_float": self.convert_to_numeric,
             "convert_to_str": self.convert_to_str,
             "convert_to_date": self.convert_to_date,
             "calculate_percentage": self.calculate_percentage,

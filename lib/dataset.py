@@ -29,6 +29,11 @@ class DataSet(object):
                 data_from_file = pd.read_csv(
                     filepath, delimiter=self.delimiter, encoding="cp1250"
                 )
+            if "stan_rekordu_na" not in data_from_file.columns:
+                date_from_file_name = f"{file[0:4]}-{file[4:6]}-{file[6:8]}"
+                data_from_file = data_from_file.assign(
+                    stan_rekordu_na=date_from_file_name
+                )
             full_data.append(data_from_file)
 
         concatenated_data = pd.concat(full_data)

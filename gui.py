@@ -25,10 +25,11 @@ class CovidDataPlotter(QWidget):
 
     def initUI(self):
         self.setWindowTitle("COVID-19 Data Plotter")
-        self.setGeometry(QtCore.QRect(500, 500, 300, 70))
+        self.setGeometry(QtCore.QRect(500, 500, 350, 70))
         self.okButton = QPushButton("Plot")
         self.okButton.clicked.connect(self.draw_plots)
         self.territory_types_dropdown = QComboBox()
+        self.territory_types_dropdown.setMinimumWidth(120)
         self.territory_types_dropdown.addItems(self.territory_types.keys())
         self.territory_types_dropdown.currentTextChanged.connect(self.selection_change)
         self.territory_type = self.territory_types_dropdown.currentText()
@@ -36,15 +37,12 @@ class CovidDataPlotter(QWidget):
 
         self.territory_dropdown = QComboBox()
         self.territory_dropdown.addItems(self.codes.province_codes)
+        self.territory_dropdown.setMinimumWidth(120)
 
         hbox = QHBoxLayout()
+        hbox.addWidget(self.territory_types_dropdown, alignment=QtCore.Qt.AlignCenter)
         hbox.addStretch(1)
-        hbox.addWidget(
-            self.territory_types_dropdown, stretch=2, alignment=QtCore.Qt.AlignCenter
-        )
-        hbox.addWidget(
-            self.territory_dropdown, stretch=2, alignment=QtCore.Qt.AlignCenter
-        )
+        hbox.addWidget(self.territory_dropdown, alignment=QtCore.Qt.AlignCenter)
 
         vbox = QVBoxLayout()
         vbox.addStretch(1)

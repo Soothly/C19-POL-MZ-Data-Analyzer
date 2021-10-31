@@ -46,7 +46,7 @@ class DataSet(object):
         return single_area_data
 
     def generate_additional_metrics(self):
-        self.data.dropna(axis=0, how="any", inplace=True)
+        self.data.fillna(0, inplace=True)
 
         for operation in self.config.operation_order:
             for operation_config in getattr(self.config, operation):

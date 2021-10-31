@@ -10,7 +10,7 @@ def parse_args():
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument(
         "admin_div",
-        choices=["wojewodztwo", "powiat"],
+        choices=["wojewodztwo", "powiat", "province", "county"],
         default="powiat",
         help="Input administrative division type",
     )
@@ -70,12 +70,28 @@ def analyze(
     print("Done!")
 
 
+def get_data_dir_from_admin_div_type(admin_div_type):
+    admin_div_types = {
+        "wojewodztwo": "province",
+        "province": "province",
+        "powiat": "county",
+        "county": "county",
+    }
+    data_dir = admin_div_types.get(admin_div_type, None)
+    if data_dir is None:
+        raise NotImplementedError(
+            f"Administrative division'{admin_div_type}' is not supported"
+        )
+    return data_dir
+
+
 if __name__ == "__main__":
     print("Parsing command-line arguments")
     args = parse_args()
     date = datetime.now()
     date_code = date.strftime("%Y%m%d")
-    data_path = args.data_dir + "/" + args.admin_div
+    admin_div_dir = get_data_dir_from_admin_div_type(args.admin_div)
+    data_path = args.data_dir + "/" + admin_div_dir
     zip_path = "."
     zip_name = "data.zip"
     archive_path = "./" + zip_name

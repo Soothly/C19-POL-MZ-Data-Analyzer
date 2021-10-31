@@ -6,7 +6,9 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QApplication,
     QComboBox,
+    QLabel,
 )
+from PyQt5 import QtCore
 from lib.territory import TerritoryCodes
 from analyzer import analyze
 
@@ -16,38 +18,41 @@ class CovidDataPlotter(QWidget):
         super().__init__()
         self.codes = TerritoryCodes()
         self.territory_types = {
-            "wojewodztwo": self.codes.province_codes,
-            "powiat": self.codes.county_codes,
+            "province": self.codes.province_codes,
+            "county": self.codes.county_codes,
         }
-        self.territory_types_list = list(self.territory_types)
         self.initUI()
 
     def initUI(self):
-
+        self.setWindowTitle("COVID-19 Data Plotter")
+        self.setGeometry(QtCore.QRect(500, 500, 300, 70))
         self.okButton = QPushButton("Plot")
         self.okButton.clicked.connect(self.draw_plots)
         self.territory_types_dropdown = QComboBox()
         self.territory_types_dropdown.addItems(self.territory_types.keys())
         self.territory_types_dropdown.currentTextChanged.connect(self.selection_change)
         self.territory_type = self.territory_types_dropdown.currentText()
+        self.label = QLabel("Welcome!")
 
         self.territory_dropdown = QComboBox()
         self.territory_dropdown.addItems(self.codes.province_codes)
 
         hbox = QHBoxLayout()
         hbox.addStretch(1)
-        hbox.addWidget(self.territory_types_dropdown)
-        hbox.addWidget(self.territory_dropdown)
-        hbox.addWidget(self.okButton)
+        hbox.addWidget(
+            self.territory_types_dropdown, stretch=2, alignment=QtCore.Qt.AlignCenter
+        )
+        hbox.addWidget(
+            self.territory_dropdown, stretch=2, alignment=QtCore.Qt.AlignCenter
+        )
 
         vbox = QVBoxLayout()
         vbox.addStretch(1)
+        vbox.addWidget(self.label, alignment=QtCore.Qt.AlignCenter)
         vbox.addLayout(hbox)
+        vbox.addWidget(self.okButton)
 
         self.setLayout(vbox)
-
-        self.setGeometry(150, 150, 150, 150)
-        self.setWindowTitle("COVID-19 Data Plotter")
         self.show()
 
     def selection_change(self, text):
@@ -56,9 +61,11 @@ class CovidDataPlotter(QWidget):
         self.territory_dropdown.addItems(list(selection_options))
 
     def draw_plots(self):
+        self.label.setText("Processing...")
         self.chosen_terrain = self.territory_dropdown.currentText()
         self.chosen_territory_type = self.territory_types_dropdown.currentText()
         analyze(self.chosen_territory_type, self.chosen_terrain)
+        self.label.setText("Ready to go :)")
 
 
 def main():

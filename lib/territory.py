@@ -9,7 +9,7 @@ class Territory(object):
 class TerritoryCodes(object):
     def __init__(self) -> None:
         self.province_codes = {
-            "Cały kraj": "t00",
+            "Whole country": "t00",
             "dolnośląskie": "t02",
             "kujawsko-pomorskie": "t04",
             "lubelskie": "t06",
@@ -28,7 +28,6 @@ class TerritoryCodes(object):
             "zachodniopomorskie": "t32",
         }
         self.county_codes = {
-            "Cały kraj": "t0000",
             "bolesławiecki": "t0201",
             "dzierżoniowski": "t0202",
             "głogowski": "t0203",
@@ -430,4 +429,8 @@ class TerritoryCodes(object):
         if territory_type == "wojewodztwo":
             return self.province_codes
         elif territory_type == "powiat":
+            return self.county_codes
+        elif territory_type == "province":
+            return self.province_codes
+        elif territory_type == "county":
             return self.county_codes

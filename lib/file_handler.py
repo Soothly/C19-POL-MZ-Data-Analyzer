@@ -21,9 +21,7 @@ class FileHandler(object):
     def download_current_data(self, territory):
         link = self.links_by_territory_type.get(territory.type, None)
         if not link:
-            raise ValueError(
-                "Unable to find link for '{}' data type".format(territory.type)
-            )
+            raise ValueError(f"Unable to find link for '{territory.type}' data type")
         urllib.request.urlretrieve(link, f"{self.file_path}/{self.filename}")
 
     def extract_data(self):
@@ -33,13 +31,13 @@ class FileHandler(object):
     def remove_downloaded_archive(self):
         try:
             os.remove(self.zip_path)
-            self.logger.info("File - {} - removed".format(self.zip_path))
+            self.logger.info(f"File - {self.zip_path} - removed")
         except FileNotFoundError:
-            self.logger.error("Could not remove - {}".format(self.zip_path))
-            self.logger.error("File does not exist!")
+            self.logger.error(f"Could not remove - {self.zip_path}")
+            self.logger.error(f"File does not exist!")
         except IsADirectoryError:
-            self.logger.error("Could not remove - {}".format(self.zip_path))
-            self.logger.error("Target is a directory")
+            self.logger.error(f"Could not remove - {self.zip_path}")
+            self.logger.error(f"Target is a directory")
         except Exception:
-            self.logger.error("Could not remove - {}".format(self.zip_path))
-            self.logger.error("File is likely in use")
+            self.logger.error(f"Could not remove - {self.zip_path}")
+            self.logger.error(f"File is likely in use")

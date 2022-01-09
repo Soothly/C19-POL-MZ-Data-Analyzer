@@ -1,9 +1,11 @@
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+import logging
 from lib.dataset import DataSet
 from lib.file_handler import FileHandler
 from lib.territory import Territory
 from datetime import date, datetime
 import os
+import sys
 
 
 def parse_args():
@@ -30,6 +32,25 @@ def parse_args():
     return parser.parse_args()
 
 
+def configure_logger(name=None):
+    handlers_list = []
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setLevel(logging.INFO)
+    date_format = "%Y-%m-%d %H:%M:%S"
+    file_handler = logging.FileHandler(filename="./logs/analyzer.log", mode="w")
+    file_handler.setLevel(logging.DEBUG)
+    handlers_list.append(stream_handler)
+    handlers_list.append(file_handler)
+    logging.basicConfig(
+        format="%(asctime)s | %(name)s |  %(levelname)s: %(message)s",
+        datefmt=date_format,
+        level=logging.DEBUG,
+        handlers=handlers_list,
+    )
+    logger_name = name if name else __name__
+    return logging.getLogger(logger_name)
+
+
 def analyze(
     territory_type,
     territory,
@@ -37,7 +58,8 @@ def analyze(
     delimiter=";",
     data_dir="./data",
 ):
-    print("Parsing command-line arguments")
+    logger = configure_logger("Analyzer")
+    logger.info("Parsing command-line arguments")
     date = datetime.now()
     date_code = date.strftime("%Y%m%d")
     data_path = data_dir + "/" + territory_type
@@ -46,28 +68,28 @@ def analyze(
     territory = Territory(territory_type, territory)
     file_handler = FileHandler(zip_name, zip_path, data_path)
 
-    print("Finding out if fresh data needs to be downloaded")
+    logger.info("Finding out if fresh data needs to be downloaded")
     files = os.listdir(data_path)
     file_name_contains_current_date = [date_code in file for file in files]
     if not any(file_name_contains_current_date):
-        print("Downloading data")
+        logger.info("Downloading data")
         file_handler.download_current_data(territory)
-        print("Extracting archive")
+        logger.info("Extracting archive")
         file_handler.extract_data()
-        print("Attempting to remove archive")
+        logger.info("Attempting to remove archive")
         file_handler.remove_downloaded_archive()
     else:
-        print("Data is current")
+        logger.info("Data is current")
 
-    print("Loading data")
+    logger.info("Loading data")
     dataset = DataSet(data_path, delimiter, territory, config)
 
-    print("Processing data")
+    logger.info("Processing data")
     dataset.generate_additional_metrics()
 
-    print("Plotting selected columns")
+    logger.info("Plotting selected columns")
     dataset.plot()
-    print("Done!")
+    logger.info("Done!")
 
 
 def get_data_dir_from_admin_div_type(admin_div_type):
@@ -86,10 +108,14 @@ def get_data_dir_from_admin_div_type(admin_div_type):
 
 
 if __name__ == "__main__":
-    print("Parsing command-line arguments")
+    logger = configure_logger(name="Analyzer")
+    logger.info("Parsing command-line arguments")
     args = parse_args()
+    logger.debug(f"Args: {args}")
     date = datetime.now()
+    logger.debug(f"Current time: {date}")
     date_code = date.strftime("%Y%m%d")
+    logger.debug(f"Date code: {date_code}")
     admin_div_dir = get_data_dir_from_admin_div_type(args.admin_div)
     data_path = args.data_dir + "/" + admin_div_dir
     zip_path = "."
@@ -98,25 +124,25 @@ if __name__ == "__main__":
     territory = Territory(args.admin_div, args.territory)
     file_handler = FileHandler(zip_name, zip_path, data_path)
 
-    print("Finding out if fresh data needs to be downloaded")
+    logger.info("Finding out if fresh data needs to be downloaded")
     files = os.listdir(data_path)
     file_name_contains_current_date = [date_code in file for file in files]
     if not any(file_name_contains_current_date):
-        print("Downloading data")
+        logger.info("Downloading data")
         file_handler.download_current_data(territory)
-        print("Extracting archive")
+        logger.info("Extracting archive")
         file_handler.extract_data()
-        print("Attempting to remove archive")
+        logger.info("Attempting to remove archive")
         file_handler.remove_downloaded_archive()
     else:
-        print("Data is current")
+        logger.info("Data is current")
 
-    print("Loading data")
+    logger.info("Loading data")
     dataset = DataSet(data_path, args.delimiter, territory, args.config)
 
-    print("Processing data")
+    logger.info("Processing data")
     dataset.generate_additional_metrics()
 
-    print("Plotting selected columns")
+    logger.info("Plotting selected columns")
     dataset.plot()
-    print("Done!")
+    logger.info("Done!")
